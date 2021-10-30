@@ -24,6 +24,7 @@ syn match ptCancelled '\v^\s*(-)(\s+([^\@]|(\s)@<!\@|\@\s)*)(.*\@cancelled(\s|\(
 syn match ptTag '\v\s\@((high|today|critical|low|completed|done)[\([:space:]])@![[:alnum:]\.\(\)\-\!\? \:\+]+[ \t]*'
 syn match ptSeparator '\v^\s*---.{3,5}---+$'
 
+" todo: make some of these bold or something?
 hi def link ptNotes Comment
 hi def link ptHeader Identifier
 
@@ -33,3 +34,8 @@ hi def link ptCancelled Comment
 
 hi def link ptTag Function
 hi def link ptSeparator Comment
+
+" these are used for deadline virtual text
+hi def link ptDeadline Normal
+hi def link ptNextDay Underlined
+hi def link ptOverdue Error
