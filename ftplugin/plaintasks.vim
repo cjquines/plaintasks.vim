@@ -102,7 +102,8 @@ function! ArchiveTasks()
       normal "Add
     endif
     let found = found + 1
-    while s:synGroup(line_number, 1) == "ptNotes"
+    let synName = s:synGroup(line_number, 1)
+    while synName == "ptCompleted" || synName == "ptNotes"
       normal "Add
     endwhile
   endwhile
