@@ -18,7 +18,7 @@ vnoremap <silent> <buffer> + :call NewTask()<cr>
 noremap <silent> <buffer> = :call ToggleComplete()<cr>
 noremap <silent> <buffer> <C-M> :call ToggleCancel()<cr>
 nnoremap <silent> <buffer> - :call ArchiveTasks()<cr>
-abbr -- <c-r>=Separator()<cr>
+iabbrev <expr> <buffer> @@ <SID>duenow()
 
 " when pressing enter within a task it creates another task
 setlocal comments+=n:☐
@@ -40,6 +40,7 @@ function! ToggleComplete()
     exec "normal A" . text
     normal _
   endif
+  call HighlightPastDue()
 endfunc
 
 function! ToggleCancel()
@@ -54,6 +55,7 @@ function! ToggleCancel()
     exec "normal A" . text
     normal _
   endif
+  call HighlightPastDue()
 endfunc
 
 function! NewTask()
@@ -68,52 +70,62 @@ function! NewTask()
   else
     execute "normal! I☐ "
   end
+  call HighlightPastDue()
 endfunc
 
 function! ArchiveTasks()
-    let orig_line=line('.')
-    let orig_col=col('.')
-    let archive_start = search("^Archive:")
-    if (archive_start == 0)
-        call cursor(line('$'), 1)
-        normal 2o
-        normal iArchive:
-        normal o＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
-        let archive_start = line('$') - 1
+  let orig_line = line('.')
+  let orig_col = col('.')
+  let archive_start = search("^Archive:")
+  if (archive_start == 0)
+    call cursor(line('$'), 1)
+    normal 2o
+    normal iArchive:
+    normal o＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
+    let archive_start = line('$') - 1
+  endif
+  call cursor(1,1)
+
+  let found = 0
+  let a_reg = @a
+  let line_number = 0
+  while line_number < line('$')
+    let line_number = line_number + 1
+    let synName = s:synGroup(line_number, 1)
+    if synName != "ptCompleted"
+      continue
     endif
-    call cursor(1,1)
-
-    let found=0
-    let a_reg = @a
-    if search("✔", "", archive_start) != 0
-        call cursor(1,1)
-        while search("✔", "", archive_start) > 0
-            if (found == 0)
-                normal "add
-            else
-                normal "Add
-            endif
-            let found = found + 1
-            call cursor(1,1)
-        endwhile
-
-        call cursor(archive_start + 1,1)
-        normal "ap
-    endif
-
-    "clean up
-    let @a = a_reg
-    call cursor(orig_line, orig_col)
-endfunc
-
-function! Separator()
-    let line = getline('.')
-    if line =~ "^-*$"
-      return "--- ✄ -----------------------"
+    call cursor(line_number, 1)
+    if (found == 0)
+      normal "add
     else
-      return "--"
-    end
+      normal "Add
+    endif
+    let found = found + 1
+    while s:synGroup(line_number, 1) == "ptNotes"
+      normal "Add
+    endwhile
+  endwhile
+
+  if found != 0
+    call cursor(archive_start + 1,1)
+    normal "ap
+  endif
+
+  "clean up
+  let @a = a_reg
+  call cursor(orig_line, orig_col)
+  call HighlightPastDue()
 endfunc
+
+" function! Separator()
+"     let line = getline('.')
+"     if line =~ "^-*$"
+"       return "--- ✄ -----------------------"
+"     else
+"       return "--"
+"     end
+" endfunc
 
 function! s:setVirtualText(buffer_number, line_number, message, hl_group) abort
   call nvim_buf_set_virtual_text(
@@ -176,6 +188,11 @@ function! HighlightPastDue()
         \)
     endif
   endfor
+endfunc
+
+function! s:duenow()
+  let date_format = get(g:, "plaintasks_date_format", "(%y-%m-%d %H:%M)")
+  return "@due" . strftime(date_format)
 endfunc
 
 augroup plaintasks
