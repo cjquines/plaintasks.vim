@@ -96,7 +96,7 @@ function! ArchiveTasks()
       continue
     endif
     call cursor(line_number, 1)
-    if (found == 0)
+    if found == 0
       normal "add
     else
       normal "Add
@@ -105,6 +105,7 @@ function! ArchiveTasks()
     let synName = s:synGroup(line_number, 1)
     while synName == "ptCompleted" || synName == "ptNotes"
       normal "Add
+      let synName = s:synGroup(line_number, 1)
     endwhile
   endwhile
 
