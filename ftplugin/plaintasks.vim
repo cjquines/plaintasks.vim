@@ -15,9 +15,6 @@ endif
 
 nnoremap <silent> <buffer> + :call NewTask()<cr>A
 vnoremap <silent> <buffer> + :call NewTask()<cr>
-noremap <silent> <buffer> = :call ToggleComplete()<cr>
-noremap <silent> <buffer> <C-M> :call ToggleCancel()<cr>
-nnoremap <silent> <buffer> - :call ArchiveTasks()<cr>
 iabbrev <expr> <buffer> @@ <SID>duenow()
 
 " when pressing enter within a task it creates another task
@@ -171,6 +168,7 @@ function! HighlightPastDue()
       if deadline == 0
         continue
       endif
+      let deadline = deadline + 86399
       let now = localtime()
       let overdue = deadline <= now ? v:true : v:false
       let diff = overdue ? now - deadline : deadline - now
@@ -199,9 +197,9 @@ endfunc
 
 augroup plaintasks
   autocmd!
-  autocmd BufEnter * call HighlightPastDue()
-  autocmd InsertEnter * call ClearHighlightPastDue()
-  autocmd TextYankPost * call ClearHighlightPastDue()
-  autocmd FocusGained * call HighlightPastDue()
-  autocmd InsertLeave * call HighlightPastDue()
+  autocmd BufEnter <buffer> call HighlightPastDue()
+  autocmd InsertEnter <buffer> call ClearHighlightPastDue()
+  autocmd TextYankPost <buffer> call ClearHighlightPastDue()
+  autocmd FocusGained <buffer> call HighlightPastDue()
+  autocmd InsertLeave <buffer> call HighlightPastDue()
 augroup END
